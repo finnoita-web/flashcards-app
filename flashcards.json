@@ -1,0 +1,475 @@
+{
+  "english": [
+    {
+      "word": "concoct",
+      "pron": "/kəŋˈkɒkt/",
+      "meaning": "To prepare something by mixing various ingredients, especially to prepare food for cooking.; To contrive something using skill or ingenuity.; To digest.",
+      "audio": "",
+      "comment": "",
+      "srs_interval": 1,
+      "srs_ease": 2.35,
+      "srs_reps": 1,
+      "srs_due": "2026-01-24"
+    },
+    {
+      "word": "irrevocable",
+      "pron": "/ɪˈɹɛvəkəb(ə)l/",
+      "meaning": "Unable to be retracted or reversed; final.",
+      "audio": "",
+      "srs_interval": 2,
+      "srs_ease": 2.5,
+      "srs_reps": 1,
+      "srs_due": "2026-01-25"
+    },
+    {
+      "word": "expedient",
+      "pron": "/ɪkˈspiːdi.ənt/",
+      "meaning": "A method or means for achieving a particular result, especially when direct or efficient; a resource.; Suitable to effect some desired end or the purpose intended.; Affording short-term benefit, often at the expense of the long-term.; Governed by self-interest, often short-term self-interest.; Expeditious, quick, rapid.",
+      "audio": "audio/expedient.mp3",
+      "srs_interval": 1,
+      "srs_ease": 2.3,
+      "srs_reps": 0,
+      "srs_due": "2026-01-24"
+    },
+    {
+      "word": "parry",
+      "pron": "/ˈpæɹi/",
+      "meaning": "A defensive or deflective action; an act of parrying.; A simple defensive action designed to deflect an attack, performed with the forte of the blade.; (combat sports and martial arts) A defensive move intended to change the direction of an incoming strike to make it miss its intended target, rather than block and absorb it; and typically performed with an open hand in a downward or sideways slapping motion.; To avoid, deflect, or ward off (an attack, a blow, an argument, etc.).",
+      "audio": ""
+    },
+    {
+      "word": "repartee",
+      "pron": "/ˌɹɛpɑːˈtiː/",
+      "meaning": "A swift, witty reply, especially one that is amusing.; A conversation marked by a series of witty retorts.; Skill in replying swiftly and wittily.; To reply with a repartee; To have a repartee (conversation marked by repartees)",
+      "audio": ""
+    },
+    {
+      "word": "fortuitous",
+      "pron": "/fɔːˈtjuːɪtəs/",
+      "meaning": "Happening by chance; coincidental, accidental.; Happening by a lucky chance; lucky or fortunate.; Happening independently of human will.",
+      "audio": ""
+    },
+    {
+      "word": "sensibilities",
+      "pron": "",
+      "meaning": "The ability to sense, feel or perceive; responsiveness to sensory stimuli; sensitivity.; Emotional or artistic awareness; keen sensitivity to matters of feeling or creative expression.; Excessive emotional awareness; the fact or quality of being overemotional.; (in the plural) An acute awareness or feeling.; The capacity to be perceived by the senses.",
+      "audio": ""
+    },
+    {
+      "word": "wholly",
+      "pron": "/ˈhəʊli/",
+      "meaning": "Completely and entirely; to the fullest extent.; Exclusively and solely.",
+      "audio": ""
+    },
+    {
+      "word": "impervious",
+      "pron": "/ɪmˈpɝ.vi.əs/",
+      "meaning": "Unaffected or unable to be affected by something.; Preventive of any penetration; impenetrable, impermeable, particularly of water.; Immune to damage or effect.",
+      "audio": "audio/impervious.mp3"
+    },
+    {
+      "word": "coarse",
+      "pron": "/kɔːs/",
+      "meaning": "Composed of large parts or particles; of inferior quality or appearance; not fine in material or close in texture.; Lacking refinement, taste or delicacy.",
+      "audio": ""
+    },
+    {
+      "word": "hurl",
+      "pron": "",
+      "meaning": "A throw, especially a violent throw; a fling.; The act of vomiting.; The act of hitting the sliotar with the hurley.; A conveyance in a wheeled vehicle; a ride in a car, etc.; Tumult; riot; hurly-burly",
+      "audio": "audio/hurl.mp3"
+    },
+    {
+      "word": "notion",
+      "pron": "/ˈnəʊʃən/",
+      "meaning": "Mental apprehension of whatever may be known, thought, or imagined; idea, concept.; A sentiment; an opinion.; Sense; mind.; An invention; an ingenious device; a knickknack.; Any small article used in sewing and haberdashery, either for attachment to garments or as a tool, such as a button, zipper, or thimble.",
+      "audio": ""
+    },
+    {
+      "word": "hastily",
+      "pron": "/ˈheɪstɪli/",
+      "meaning": "In a hasty manner; quickly, hurriedly.; Soon, shortly.",
+      "audio": "audio/hastily.mp3"
+    },
+    {
+      "word": "putative",
+      "pron": "",
+      "meaning": "Commonly believed or deemed to be the case; accepted by supposition rather than as a result of proof.",
+      "audio": "audio/putative.mp3"
+    },
+    {
+      "word": "exude",
+      "pron": "",
+      "meaning": "To discharge through pores or incisions, as moisture or other liquid matter; to give out.; To flow out through the pores.",
+      "audio": "audio/exude.mp3"
+    },
+    {
+      "word": "febrile",
+      "pron": "/ˈfiːbɹaɪl/",
+      "meaning": "Feverish, or having a high temperature.; Full of nervous energy.",
+      "audio": "audio/febrile.mp3"
+    },
+    {
+      "word": "scowl",
+      "pron": "/skaʊl/",
+      "meaning": "The wrinkling of the brows or face in frowning; the expression of displeasure, sullenness, or discontent in the countenance; an angry frown.; (by extension) Gloom; dark or threatening aspect.; To wrinkle the brows, as in frowning or displeasure; to put on a frowning look; to look sour, sullen, severe, or angry.; (by extension) To look gloomy, dark, or threatening; to lower.; To look at or repel with a scowl or a frown.",
+      "audio": "audio/scowl.mp3"
+    },
+    {
+      "word": "caulk",
+      "pron": "/kælk/",
+      "meaning": "A pointed projection on a horseshoe to prevent it slipping.; A spike on the sole of a boot to prevent slipping, particularly used in logging; Caulking.; A composition of vehicle and pigment used at ambient temperatures for filling/sealing joints or junctures, that remains elastic for an extended period of time after application.; To drive oakum into the seams of a ship's wooden deck or hull to make it watertight.",
+      "audio": "audio/caulk.mp3"
+    },
+    {
+      "word": "chafe",
+      "pron": "/tʃeɪf/",
+      "meaning": "Heat excited by friction.; Injury or wear caused by friction.; Vexation; irritation of mind; rage.; An expression of opinionated conflict.; To excite heat in by friction; to rub in order to stimulate and make warm.",
+      "audio": "audio/chafe.mp3"
+    },
+    {
+      "word": "yearn",
+      "pron": "/jɝn/",
+      "meaning": "To long, have a strong desire (for something).; To long for something in the past with melancholy, nostalgically.; To have strong feelings of love, sympathy, affection, etc. (toward someone).; To be pained or distressed; to grieve; to mourn.; To pain; to grieve; to vex.",
+      "audio": "audio/yearn.mp3"
+    },
+    {
+      "word": "Whiplash",
+      "pron": "",
+      "meaning": "The lash of a whip; An injury to the upper spine connected to a violent jerk of the head in either a backward or forward or side to side direction, resembling the motion of a whip; To jerk back and forth; to buffet; To lash as if with a whip",
+      "audio": ""
+    },
+    {
+      "word": "squirm",
+      "pron": "",
+      "meaning": "A twisting, snakelike movement of the body.; To twist one's body with snakelike motions.; To twist in discomfort, especially from shame or embarrassment.; To evade a question, an interviewer etc.",
+      "audio": "audio/squirm.mp3"
+    },
+    {
+      "word": "tobogganing",
+      "pron": "",
+      "meaning": "To slide down a hill on a toboggan or other object.; To go downhill unstoppably until one reaches the bottom.; The use of toboggans, historically for transport, but now usually for pleasure or for organised sport.",
+      "audio": ""
+    },
+    {
+      "word": "prescient",
+      "pron": "/ˈpɹiːʃɪənt/",
+      "meaning": "Exhibiting or possessing prescience: having knowledge of, or seemingly able to correctly predict, events before they take place.",
+      "audio": "audio/prescient.mp3"
+    },
+    {
+      "word": "flick",
+      "pron": "/flɪk/",
+      "meaning": "A short, quick movement, especially a brush, sweep, or flip.; A motion picture; (in plural, usually preceded by \"the\") movie theater, cinema.; A cut that lands with the point, often involving a whip of the foible of the blade to strike at a concealed target.; A powerful underarm volley shot.; The act of pressing a place on a touch screen device.",
+      "audio": "audio/flick.mp3"
+    },
+    {
+      "word": "apt",
+      "pron": "/æpt/",
+      "meaning": "Suitable; appropriate; fit or fitted; suited.; (of persons or things) Having a habitual tendency; habitually liable or likely; disposed towards.; Ready; especially fitted or qualified (to do something); quick to learn.",
+      "audio": "audio/apt.mp3"
+    },
+    {
+      "word": "fret",
+      "pron": "",
+      "meaning": "Agitation of the surface of a fluid by fermentation or some other cause; a rippling on the surface of water.; Agitation of the mind marked by complaint and impatience; disturbance of temper; irritation.; Herpes; tetter.; (in the plural) The worn sides of riverbanks, where ores or stones containing them accumulate after being washed down from higher ground, which thus indicate to miners the locality of veins of ore.; Especially when describing animals: to consume, devour, or eat.",
+      "audio": "audio/fret.mp3"
+    },
+    {
+      "word": "heath",
+      "pron": "/hiːθ/",
+      "meaning": "A tract of level uncultivated land with sandy soil and scrubby vegetation; heathland.; Any small evergreen shrub of the family Ericaceae.; Certain butterflies and moths",
+      "audio": "audio/heath.mp3"
+    },
+    {
+      "word": "timid",
+      "pron": "/ˈtɪmɪd/",
+      "meaning": "Lacking in courage or confidence.",
+      "audio": "audio/timid.mp3"
+    },
+    {
+      "word": "twang",
+      "pron": "/twæŋ/",
+      "meaning": "The sharp, quick sound of a vibrating tight string, for example, of a bow or a musical instrument.; A particular sharp vibrating sound characteristic of electric guitars.; A trace of a regional or foreign accent in someone's voice.; The sound quality that appears in the human voice when the epilaryngeal tube is narrowed.; A sharp, disagreeable taste or flavor.",
+      "audio": "audio/twang.mp3"
+    },
+    {
+      "word": "sprig",
+      "pron": "/spɹɪɡ/",
+      "meaning": "A small shoot or twig of a tree or other plant; a spray.; An ornament resembling a small shoot or twig.; One of the separate pieces of lace fastened on a ground in applique lace.; (sometimes mildly) A youth; a lad.; A brad, or nail without a head.",
+      "audio": "audio/sprig.mp3"
+    },
+    {
+      "word": "foist",
+      "pron": "/fɔɪst/",
+      "meaning": "A thief or pickpocket.; To introduce or insert surreptitiously or without warrant.; To force another to accept especially by stealth or deceit.; To pass off as genuine or worthy.",
+      "audio": "audio/foist.mp3"
+    },
+    {
+      "word": "helix",
+      "pron": "/ˈhiːlɪks/",
+      "meaning": "A curve on the surface of a cylinder or cone such that its angle to a plane perpendicular to the axis is constant; the three-dimensional curve seen in a screw or a spiral staircase.; A small volute under the abacus of a Corinthian capital.; The incurved rim of the external ear.; An upside down midair 360° spin in playboating.; To form or cause to form a helix.",
+      "audio": "audio/helix.mp3"
+    },
+    {
+      "word": "gulch",
+      "pron": "/ɡʌltʃ/",
+      "meaning": "A ravine-like or deep V-shaped valley, often eroded by flash floods; shallower than a canyon and deeper than a gully.; An act of gulching or gulping.; A glutton.; To swallow greedily; to gulp down.; To fall heavily.",
+      "audio": ""
+    },
+    {
+      "word": "befuddled",
+      "pron": "",
+      "meaning": "To perplex, confuse (someone).; To stupefy (someone), especially with alcohol.; Confused or perplexed; Drunk",
+      "audio": ""
+    },
+    {
+      "word": "squander",
+      "pron": "/ˈskwɒnd.ə/",
+      "meaning": "To waste, lavish, splurge; to spend lavishly or profusely; to dissipate.; To scatter; to disperse.; To wander at random; to scatter.",
+      "audio": "audio/squander.mp3"
+    },
+    {
+      "word": "midriff",
+      "pron": "",
+      "meaning": "The middle section of the human torso, from below the chest to above the waist",
+      "audio": "audio/midriff.mp3"
+    },
+    {
+      "word": "knead",
+      "pron": "/niːd/",
+      "meaning": "The act of kneading something.; To work and press into a mass, usually with the hands; especially, to work, as by repeated pressure with the knuckles, into a well mixed mass, the materials of bread, cake, etc.; To treat or form as if by kneading; to beat.; (of cats) To make an alternating pressing motion with the two front paws.; To mix thoroughly; form into a homogeneous compound.",
+      "audio": "audio/knead.mp3"
+    },
+    {
+      "word": "twirl",
+      "pron": "",
+      "meaning": "A movement where a person spins round elegantly; a pirouette.; Any rotating movement; a spin.; A little twist of some substance; a swirl.; A prison guard.; To perform a twirl.",
+      "audio": "audio/twirl.mp3"
+    },
+    {
+      "word": "brisk",
+      "pron": "/bɹɪsk/",
+      "meaning": "(often with \"up\") To make or become lively; to enliven; to animate.; Full of liveliness and activity; characterized by quickness of motion or action; Full of spirit of life; effervescing; Sparkling; fizzy; Stimulating or invigorating.",
+      "audio": ""
+    },
+    {
+      "word": "cumbrous",
+      "pron": "/ˈkʌmbɹəs/",
+      "meaning": "Unwieldy because of its weight; cumbersome.; Giving trouble; vexatious.",
+      "audio": "audio/cumbrous.mp3"
+    },
+    {
+      "word": "bayou",
+      "pron": "/ˈbaɪ.oʊ/",
+      "meaning": "A slow-moving, often stagnant creek or river.; A swamp, a marshy (stagnant) body of water.",
+      "audio": ""
+    },
+    {
+      "word": "slink",
+      "pron": "/slɪŋk/",
+      "meaning": "A furtive sneaking motion.; The young of an animal when born prematurely, especially a calf.; The meat of such a prematurely born animal.; A bastard child, one born out of wedlock.; A thievish fellow; a sneak.",
+      "audio": ""
+    },
+    {
+      "word": "beget",
+      "pron": "",
+      "meaning": "To father; to sire; to produce (a child).; To cause; to produce.; To bring forth.; To happen to; befall.",
+      "audio": "audio/beget.mp3"
+    },
+    {
+      "word": "volition",
+      "pron": "",
+      "meaning": "A conscious choice or decision.; The mental power or ability of choosing; the will.; A concept that distinguishes whether or not the subject or agent intended something.",
+      "audio": "audio/volition.mp3"
+    },
+    {
+      "word": "loll",
+      "pron": "/lɒl/",
+      "meaning": "To act lazily or indolently while reclining; to lean; to lie at ease.; To hang extended from the mouth, like the tongue of an animal heated from exertion.; To let (the tongue) hang from the mouth in this way.",
+      "audio": "audio/loll.mp3"
+    },
+    {
+      "word": "quell",
+      "pron": "/kwɛl/",
+      "meaning": "A subduing.; To subdue, to put down; to silence or force (someone) to submit.; To suppress, to put an end to (something); to extinguish.; To kill.; To be subdued or abated; to diminish.",
+      "audio": "audio/quell.mp3"
+    },
+    {
+      "word": "falter",
+      "pron": "/ˈfɒltə(r)/",
+      "meaning": "Unsteadiness.; To waver or be unsteady; to weaken or trail off.; To stammer; to utter with hesitation, or in a weak and trembling manner.; To fail in distinctness or regularity of exercise; said of the mind or of thought.; To stumble.",
+      "audio": "audio/falter.mp3"
+    },
+    {
+      "word": "decal",
+      "pron": "/dɪˈkæl/",
+      "meaning": "A design or picture produced in order to be transferred to another surface either permanently or temporarily.; A decorative sticker.; To apply decals to.",
+      "audio": "audio/decal.mp3"
+    },
+    {
+      "word": "graft",
+      "pron": "",
+      "meaning": "A small shoot or scion of a tree inserted in another tree, the stock of which is to support and nourish it. The two unite and become one tree, but the graft determines the kind of fruit.; A branch or portion of a tree growing from such a shoot.; A portion of living tissue used in the operation of autoplasty.; To insert (a graft) in a branch or stem of another tree; to propagate by insertion in another stock; also, to insert a graft upon.; To insert scions (grafts) from one tree, or kind of tree, etc., into another; to practice grafting.",
+      "audio": "audio/graft.mp3"
+    },
+    {
+      "word": "sneer",
+      "pron": "/snɪə̯/",
+      "meaning": "A facial expression where one slightly raises one corner of the upper lip, generally indicating scorn.; A display of contempt; scorn.; To raise a corner of the upper lip slightly, especially in scorn; To utter with a grimace or contemptuous expression; to say sneeringly.",
+      "audio": "audio/sneer.mp3"
+    },
+    {
+      "word": "quad",
+      "pron": "/kwɒd/",
+      "meaning": "Four shots of espresso.; A kind of round-robin tournament between four players, where each participant plays every other participant once.; The Bible, Book of Mormon, Doctrine and Covenants, and Pearl of Great Price bound in a single volume.; A poster, measuring forty by thirty inches, advertising a cinematic film release.; Having four shots of espresso.",
+      "audio": ""
+    },
+    {
+      "word": "mange",
+      "pron": "/meɪndʒ/",
+      "meaning": "A skin disease of mammals caused by parasitic mites (Sarcoptes spp., Demodecidae spp.).",
+      "audio": "audio/mange.mp3"
+    },
+    {
+      "word": "shrill",
+      "pron": "",
+      "meaning": "A shrill sound.; To make a shrill noise.; High-pitched and piercing.; Having a shrill voice.; Sharp or keen to the senses.",
+      "audio": "audio/shrill.mp3"
+    },
+    {
+      "word": "dingy",
+      "pron": "/ˈdɪn.dʒi/",
+      "meaning": "Drab; shabby; dirty; squalid",
+      "audio": "audio/dingy.mp3"
+    },
+    {
+      "word": "appease",
+      "pron": "/əˈpiːz/",
+      "meaning": "To make quiet; to calm; to reduce to a state of peace; to dispel (anger or hatred).; To come to terms with; to adapt to the demands of.",
+      "audio": ""
+    },
+    {
+      "word": "sundries",
+      "pron": "",
+      "meaning": "(usually in the plural) A minor miscellaneous item.; (in the plural) A category for irregular or miscellaneous items not otherwise classified.; (usually in the plural) An extra.",
+      "audio": ""
+    },
+    {
+      "word": "jambalaya",
+      "pron": "/ˌdʒæmbəˈlaɪə/",
+      "meaning": "Any of various of rice-based dishes common in Louisiana Cajun or Creole cooking; most often with shrimp, oysters, chicken or ham.",
+      "audio": ""
+    },
+    {
+      "word": "whatnot",
+      "pron": "/ˈwɒt.nɒt/",
+      "meaning": "A small unspecified object; bric-a-brac (in plural); Other related objects or ideas.; A freestanding set of shelves on which ornaments are displayed; an etagere.",
+      "audio": ""
+    },
+    {
+      "word": "hodgepodge",
+      "pron": "/ˈhɒdʒˌpɒdʒ/",
+      "meaning": "A hotchpotch; a collection containing a variety of miscellaneous things.; A confused mass of ingredients shaken or mixed together in the same pot.; To move or position in an erratic, disorganised manner.",
+      "audio": ""
+    },
+    {
+      "word": "hotchpotch",
+      "pron": "/ˈhɒt͡ʃpɒt͡ʃ/",
+      "meaning": "A hotchpotch; a collection containing a variety of miscellaneous things.; A confused mass of ingredients shaken or mixed together in the same pot.; The blending together of property so as to achieve equal division, especially in the case of divorce or intestacy.; A kind of mutton broth with green peas instead of barley or rice.",
+      "audio": "audio/hotchpotch.mp3"
+    },
+    {
+      "word": "doable",
+      "pron": "",
+      "meaning": "Something that can be done; a possible or practical task.; Possible to do; feasible.; Worthy of sexual conquest.",
+      "audio": ""
+    },
+    {
+      "word": "bristles",
+      "pron": "",
+      "meaning": "A stiff or coarse hair.; The hairs or other filaments that make up a brush, broom, or similar item.; To rise or stand erect, like bristles.; Abound, to have an abundance of something; (with at) To be on one's guard or raise one's defenses; to react with fear, suspicion, or distance.",
+      "audio": ""
+    },
+    {
+      "word": "friar",
+      "pron": "/ˈfɹaɪə/",
+      "meaning": "A member of a mendicant Christian order such as the Augustinians, Carmelites (white friars), Franciscans (grey friars) or the Dominicans (black friars).; A white or pale patch on a printed page.; An American fish, the silverside.",
+      "audio": "",
+      "comment": "",
+      "srs_interval": 1,
+      "srs_due": "2026-01-23",
+      "srs_ease": 2.5,
+      "srs_reps": 0
+    },
+    {
+      "word": "bilge",
+      "pron": "/bɪldʒ/",
+      "meaning": "The rounded portion of a ship's hull, forming a transition between the bottom and the sides.; The lowest inner part of a ship's hull, where water accumulates.; The water accumulated in the bilge, the bilge water.; Stupid talk or writing; nonsense.; The bulging part of a barrel or cask.",
+      "audio": "audio/bilge.mp3",
+      "comment": "",
+      "srs_interval": 1,
+      "srs_due": "2026-01-23",
+      "srs_ease": 2.5,
+      "srs_reps": 0
+    },
+    {
+      "word": "gourd",
+      "pron": "/ɡɔːd/",
+      "meaning": "Any of the trailing or climbing vines producing fruit with a hard rind or shell, from the genera Lagenaria and Cucurbita (in Cucurbitaceae).; A hard-shelled fruit from a plant in Lagenaria or Cucurbita.; The dried and hardened shell of such fruit, made into a drinking vessel, bowl, spoon, or other objects designed for use or decoration.; Any of the climbing or trailing plants from the family Cucurbitaceae, which includes watermelon, pumpkins, and cucumbers.; Loaded dice.",
+      "audio": "",
+      "comment": "",
+      "srs_interval": 1,
+      "srs_due": "2026-01-23",
+      "srs_ease": 2.5,
+      "srs_reps": 0
+    },
+    {
+      "word": "blimp",
+      "pron": "/blɪmp/",
+      "meaning": "An airship constructed with a non-rigid lifting agent container.; (by extension) Any large airborne inflatable.; An obese person.; A person similar to the cartoon character Colonel Blimp; a pompous, reactionary British man.; To expand like a blimp or balloon; to become fat.",
+      "audio": "",
+      "comment": "",
+      "srs_interval": 1,
+      "srs_due": "2026-01-23",
+      "srs_ease": 2.5,
+      "srs_reps": 0
+    }
+  ],
+  "chinese": [
+    {
+      "word": "生日",
+      "pron": "sheng1 ri4",
+      "meaning": "birthday",
+      "audio": ""
+    },
+    {
+      "word": "明天",
+      "pron": "ming2 tian1",
+      "meaning": "tomorrow",
+      "audio": ""
+    },
+    {
+      "word": "晚饭",
+      "pron": "wan3 fan4",
+      "meaning": "evening meal",
+      "audio": ""
+    },
+    {
+      "word": "忙",
+      "pron": "mang2",
+      "meaning": "busy",
+      "audio": ""
+    },
+    {
+      "word": "咖啡",
+      "pron": "ka1 fei1",
+      "meaning": "(loanword) coffee",
+      "audio": ""
+    }
+  ],
+  "groups": {},
+  "study_history": [
+    "2026-01-23"
+  ]
+}
