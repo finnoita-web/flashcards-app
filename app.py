@@ -235,6 +235,25 @@ def srs_update(entry, quality):
     entry["srs_reps"] = reps
     entry["srs_due"] = next_due
 
+def lookup_chinese_by_pinyin(py):
+    py = py.lower().replace(" ", "")
+    matches = []
+    for hanzi, info in cedict_dict.items():
+        p = info.get("pinyin", "").lower().replace(" ", "")
+        if p == py:
+            matches.append(hanzi)
+    return matches
+
+def choose_prompt_type(card):
+    """Choose word, meaning, or comment — only from non-empty fields."""
+    options = ["word"]
+    if card.get("meaning"):
+        options.append("meaning")
+    if card.get("comment"):
+        options.append("comment")
+
+    import random
+    return random.choice(options)
 
 
 # ----------------- Streamlit UI ----------------- #
@@ -355,6 +374,7 @@ if page == "Add Words":
             errors = []
 
             for w in words:
+                w = w.lower()
                 # Skip duplicates
                 if any(e["word"] == w for e in data[lang_key]):
                     continue
@@ -408,9 +428,17 @@ if page == "Add Words":
 
                 # ----------------- Chinese ----------------- #
                 else:
-                    if not is_chinese(w):
-                        errors.append(f"Non-Chinese word in Chinese mode: {w}")
-                        continue
+                    # Try pinyin lookup
+                        matches = lookup_chinese_by_pinyin(w)
+                        if not matches:
+                            errors.append(f"Not Chinese or valid pinyin: {w}")
+                            continue
+                        if len(matches) > 1:
+                            # Let user choose
+                            chosen = st.selectbox(f"Multiple matches for '{w}'", matches)
+                            w = chosen
+                        else:
+                            w = matches[0]
 
                     ced = cedict_dict.get(w, {})
                     entry = {
@@ -450,6 +478,7 @@ if page == "Add Words":
                     added = 0
                     for line in content:
                         word = line.strip()
+                        word = word.lower()
                         if not word:
                             continue
 
@@ -670,117 +699,190 @@ elif page == "Study Mode":
     st.header("🎓 Study Mode")
 
     ss = st.session_state
-    ss.setdefault("study_list", [])
-    ss.setdefault("study_index", 0)
-    ss.setdefault("revealed", False)
 
-    # ----------------- SETTINGS ----------------- #
-    with st.expander("Study Settings", expanded=True):
+    # ---------- Session State Initialization ----------
+    if "study_list" not in ss:
+        ss.study_list = []
+    if "study_index" not in ss:
+        ss.study_index = 0
+    if "revealed" not in ss:
+        ss.revealed = False
+    if "study_prompt_type" not in ss:
+        ss.study_prompt_type = "word"
+    if "mixed_mode" not in ss:
+        ss.mixed_mode = False
+    if "reverse_mode" not in ss:
+        ss.reverse_mode = False
 
-        study_source = st.radio(
-            "Study:",
-            ["All English Words", "All Chinese Words", "Study Group"]
-        )
-
-        selected_group = None
-        if study_source == "Study Group":
-            if not data["groups"]:
-                st.warning("No groups available.")
-                st.stop()
-            selected_group = st.selectbox("Select a group", list(data["groups"].keys()))
-
-        shuffle = st.checkbox("Shuffle cards")
-
-        if st.button("Start Study", key="start_study"):
-            ss.revealed = False
-            ss.study_index = 0
-            import datetime
-            today = datetime.date.today().isoformat()
-
-            if today not in data["study_history"]:
-                data["study_history"].append(today)
-                save_data(data)
-
-
-            study_list = []
-
-            if study_source == "All English Words":
-                study_list = data["english"]
-
-            elif study_source == "All Chinese Words":
-                study_list = data["chinese"]
-
+    # ---------- Prompt chooser ----------
+    def choose_prompt_type(card):
+        if ss.reverse_mode:
+            if card.get("comment"):
+                return "comment"
+            elif card.get("meaning"):
+                return "meaning"
             else:
-                ids = data["groups"][selected_group]
-                for wid in ids:
-                    lang, word = wid.split(":", 1)
-                    entry = next((e for e in data[lang] if e["word"] == word), None)
-                    if entry:
-                        study_list.append(entry)
+                return "word"
+        elif ss.mixed_mode:
+            options = ["word"]
+            if card.get("meaning"):
+                options.append("meaning")
+            if card.get("comment"):
+                options.append("comment")
+            import random
+            return random.choice(options)
+        else:
+            return "word"
 
-            if not study_list:
-                st.warning("No words available.")
-                st.stop()
-
-            if shuffle:
-                import random
-                random.shuffle(study_list)
-
-            ss.study_list = study_list
-
-    # ----------------- NO STUDY LIST YET ----------------- #
+    # ---------- Study Setup ----------
     if not ss.study_list:
+        with st.expander("Study Settings", expanded=True):
+
+            study_source = st.radio(
+                "Study:",
+                ["All English Words", "All Chinese Words", "Study Group"]
+            )
+
+            shuffle = st.checkbox("Shuffle cards")
+            ss.mixed_mode = st.checkbox("Mixed prompt mode (word / meaning / comment)")
+            ss.reverse_mode = st.checkbox("Reverse mode (meaning → word)")
+
+            selected_group = None
+            if study_source == "Study Group":
+                if not data["groups"]:
+                    st.warning("No groups available.")
+                    st.stop()
+                selected_group = st.selectbox("Select a group", list(data["groups"].keys()))
+
+            if st.button("Start Study"):
+                import datetime
+                today = datetime.date.today().isoformat()
+                if today not in data["study_history"]:
+                    data["study_history"].append(today)
+                    save_data(data)
+
+                # Build study list
+                if study_source == "All English Words":
+                    study_list = data["english"]
+                elif study_source == "All Chinese Words":
+                    study_list = data["chinese"]
+                else:
+                    study_list = []
+                    for wid in data["groups"][selected_group]:
+                        lang, word = wid.split(":", 1)
+                        entry = next((e for e in data[lang] if e["word"] == word), None)
+                        if entry:
+                            study_list.append(entry)
+
+                if not study_list:
+                    st.warning("No words available.")
+                    st.stop()
+
+                if shuffle:
+                    import random
+                    random.shuffle(study_list)
+
+                ss.study_list = study_list
+                ss.study_index = 0
+                ss.revealed = False
+                ss.study_prompt_type = choose_prompt_type(study_list[0])
+                st.rerun()
+
         st.info("Start a study session above.")
         st.stop()
 
-    # ----------------- CURRENT CARD ----------------- #
+    # ---------- Current Card ----------
     card = ss.study_list[ss.study_index]
 
-    st.markdown(f"## **{card['word']}**")
-
-    if ss.revealed:
-        st.markdown(f"**Pronunciation:** {card.get('pron', '')}")
+    # ---------- Display Prompt ----------
+    if ss.study_prompt_type == "word":
+        st.markdown(f"## **{card['word']}**")
+    elif ss.study_prompt_type == "meaning":
         st.markdown("### Meaning")
         st.write(card.get("meaning", ""))
+    elif ss.study_prompt_type == "comment":
+        st.markdown("### Comment")
+        st.info(card.get("comment", ""))
 
-        if card.get("comment"):
+    # ---------- Reveal ----------
+    if ss.revealed:
+        if ss.study_prompt_type != "word":
+            st.markdown(f"### Word\n**{card['word']}**")
+
+        st.markdown(f"**Pronunciation:** {card.get('pron', '')}")
+
+        if ss.study_prompt_type != "meaning":
+            st.markdown("### Meaning")
+            st.write(card.get("meaning", ""))
+
+        if card.get("comment") and ss.study_prompt_type != "comment":
             st.markdown("### Comment")
             st.info(card["comment"])
 
-    # ----------------- BUTTONS ----------------- #
-    col1, col2 = st.columns(2)
-    col3, col4 = st.columns(2)
+    # ---------- Button Row ----------
+    st.markdown("""
+    <style>
+    .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    .button-row .stButton > button {
+        flex: 1;
+        min-width: 100px;
+        font-size: 1.1rem;
+        padding: 0.6rem 1rem;
+    }
+    @media (max-width: 600px) {
+        .button-row {
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .button-row .stButton > button {
+            flex: 1;
+            font-size: 1.2rem;
+            padding: 0.9rem 1.2rem;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+    st.markdown('<div class="button-row">', unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
 
-    # Previous
     with col1:
-        if st.button("⬅️ Previous", key="study_prev"):
+        if st.button("⬅️ Previous"):
             if ss.study_index > 0:
                 ss.study_index -= 1
-            ss.revealed = False
+                ss.revealed = False
+                ss.study_prompt_type = choose_prompt_type(ss.study_list[ss.study_index])
+                st.rerun()
 
-    # Reveal
     with col2:
-        if st.button("Reveal", key="study_reveal"):
+        if st.button("Reveal"):
             ss.revealed = True
+            st.rerun()
 
-    # Next
     with col3:
-        if st.button("➡️ Next", key="study_next"):
+        if st.button("➡️ Next"):
             if ss.study_index < len(ss.study_list) - 1:
                 ss.study_index += 1
-            ss.revealed = False
+                ss.revealed = False
+                ss.study_prompt_type = choose_prompt_type(ss.study_list[ss.study_index])
+                st.rerun()
 
-    # End
     with col4:
-        if st.button("❌ End", key="study_end"):
+        if st.button("❌ End"):
             ss.study_list = []
             ss.study_index = 0
             ss.revealed = False
-            st.success("Study mode ended.")
-            st.stop()
+            st.rerun()
 
-    # ----------------- AUDIO (separate from buttons!) ----------------- #
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ---------- Audio ----------
     audio_path = card.get("audio", "")
     if audio_path and Path(audio_path).exists():
         with open(audio_path, "rb") as f:
