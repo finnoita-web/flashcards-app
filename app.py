@@ -49,24 +49,51 @@ load_cedict()
 # ----------------- Data helpers ----------------- #
 
 def load_data():
-    if DATA_FILE.exists():
-        with DATA_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        if "english" not in data:
-            data["english"] = []
-        if "chinese" not in data:
-            data["chinese"] = []
-        if "groups" not in data:
-            data["groups"] = {}
-        if "study_history" not in data:
-            data["study_history"] = []   # list of dates: ["2025-01-21", ...]
+    import json, os
 
-        return data
-    return {"english": [], "chinese": [], "groups": {}}
+    if not os.path.exists(DATA_FILE):
+        return {
+            "english": [],
+            "chinese": [],
+            "groups": {},
+            "users": {}  # multi-user container
+        }
+
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Ensure keys exist
+    data.setdefault("english", [])
+    data.setdefault("chinese", [])
+    data.setdefault("groups", {})
+    data.setdefault("users", {})
+
+    # MIGRATION: if old single-user study_history exists, move it into a default user
+    if "study_history" in data and data["study_history"]:
+        if "Default" not in data["users"]:
+            data["users"]["Default"] = {
+                "srs": {
+                    "english": {},
+                    "chinese": {}
+                },
+                "study_history": data["study_history"]
+            }
+        del data["study_history"]
+
+    # Ensure each user has required structure
+    for uname, udata in data["users"].items():
+        udata.setdefault("srs", {})
+        udata["srs"].setdefault("english", {})
+        udata["srs"].setdefault("chinese", {})
+        udata.setdefault("study_history", [])
+
+    return data
 
 def save_data(data):
-    with DATA_FILE.open("w", encoding="utf-8") as f:
+    import json
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
         
 def is_chinese(word: str) -> bool:
     return any('\u4e00' <= ch <= '\u9fff' for ch in word)
@@ -235,15 +262,44 @@ def srs_update(entry, quality):
     entry["srs_reps"] = reps
     entry["srs_due"] = next_due
 
-def lookup_chinese_by_pinyin(py):
-    py = py.lower().replace(" ", "")
+def strip_pinyin_tones(p: str) -> str:
+    """Convert pinyin with tone marks or numbers to plain letters."""
+    tone_map = {
+        "ā":"a","á":"a","ǎ":"a","à":"a",
+        "ē":"e","é":"e","ě":"e","è":"e",
+        "ī":"i","í":"i","ǐ":"i","ì":"i",
+        "ō":"o","ó":"o","ǒ":"o","ò":"o",
+        "ū":"u","ú":"u","ǔ":"u","ù":"u",
+        "ǖ":"ü","ǘ":"ü","ǚ":"ü","ǜ":"ü",
+        "ü":"ü"
+    }
+    for k, v in tone_map.items():
+        p = p.replace(k, v)
+    p = re.sub(r"[1-5]", "", p)
+    return p.lower()
+
+def lookup_chinese_by_pinyin(py: str, tone_sensitive: bool):
+    """Return hanzi whose pinyin matches the input, tone-sensitive or not."""
+    raw = py.lower().replace(" ", "")
+    stripped = strip_pinyin_tones(raw)
+
     matches = []
+
     for hanzi, info in cedict_dict.items():
         p = info.get("pinyin", "").lower().replace(" ", "")
-        if p == py:
-            matches.append(hanzi)
-    return matches
+        p_stripped = strip_pinyin_tones(p)
 
+        if tone_sensitive:
+            # Tone-sensitive: pinyin must match exactly (tone number or tone mark)
+            if p.startswith(raw):
+                matches.append(hanzi)
+        else:
+            # Tone-insensitive: compare stripped forms
+            if p_stripped == stripped:
+                matches.append(hanzi)
+
+    return matches
+    
 def choose_prompt_type(card):
     """Choose word, meaning, or comment — only from non-empty fields."""
     options = ["word"]
@@ -255,6 +311,15 @@ def choose_prompt_type(card):
     import random
     return random.choice(options)
 
+def get_user_data(data, username):
+    return data["users"][username]
+
+def get_user_srs(data, username, lang):
+    return data["users"][username]["srs"][lang]
+
+def get_user_history(data, username):
+    return data["users"][username]["study_history"]
+    
 
 # ----------------- Streamlit UI ----------------- #
 
@@ -348,14 +413,95 @@ h1, h2, h3 {
 
 st.title("📚 Flashcard Learning App (Web Version)")
 
+# Load data
+data = load_data()
+
+# ----------------- USER SELECTOR ----------------- #
+
+def normalize_username(name: str) -> str:
+    name = name.strip()
+    if not name:
+        return ""
+    return " ".join(part.capitalize() for part in name.split())
+
+
+def get_or_create_user(data):
+    ss = st.session_state
+    if "current_user" not in ss:
+        ss.current_user = None
+
+    st.sidebar.markdown("### 👤 User")
+
+    users = sorted(list(data["users"].keys()))
+    add_new = "➕ Add new user"
+
+    if users:
+        choice = st.sidebar.selectbox(
+            "Select user",
+            options=users + [add_new],
+            index=users.index(ss.current_user) if ss.current_user in users else 0
+        )
+    else:
+        choice = add_new
+
+    if choice == add_new:
+        new_name = st.sidebar.text_input("Enter your name")
+        if st.sidebar.button("Create profile"):
+            uname = normalize_username(new_name)
+            if not uname:
+                st.sidebar.warning("Please enter a non-empty name.")
+            elif uname in data["users"]:
+                st.sidebar.warning("A profile with this name already exists.")
+            else:
+                data["users"][uname] = {
+                    "srs": {"english": {}, "chinese": {}},
+                    "study_history": []
+                }
+                save_data(data)
+                ss.current_user = uname
+                st.sidebar.success(f"Profile '{uname}' created.")
+                st.rerun()
+    else:
+        ss.current_user = choice
+
+    if ss.current_user is None:
+        st.stop()
+
+    return ss.current_user
+
+
+current_user = get_or_create_user(data)
+
+
+# ----------------- ADMIN TOOLS ----------------- #
+
+st.sidebar.markdown("---")
+show_admin = st.sidebar.checkbox("Show admin tools")
+
+if show_admin:
+    st.sidebar.markdown("### 🛠 Manage profiles")
+    users = sorted(list(data["users"].keys()))
+    if users:
+        to_delete = st.sidebar.selectbox("Profile to delete", users)
+        if st.sidebar.button("Delete selected profile"):
+            if to_delete == current_user:
+                st.sidebar.warning("You cannot delete the profile you are currently using.")
+            else:
+                del data["users"][to_delete]
+                save_data(data)
+                st.sidebar.success(f"Profile '{to_delete}' deleted.")
+                st.rerun()
+    else:
+        st.sidebar.info("No profiles to manage yet.")
+
+
+
 # Sidebar navigation
 page = st.sidebar.radio(
     "Navigation",
-    ["Add Words", "Flashcards", "Study Mode", "Study Groups", "Backup & Restore", "Statistics", "Review Mode (SRS)"]
+    ["Add Words", "Flashcards", "Study Mode", "Study Groups", "Backup & Restore", "Statistics", "Review Mode (SRS)", "Dictionary Lookup"]
 )
 
-# Load data
-data = load_data()
 
 # ----------------- PAGE: Add Words ----------------- #
 if page == "Add Words":
@@ -381,45 +527,70 @@ if page == "Add Words":
 
                 # ----------------- English ----------------- #
                 if lang_key == "english":
-                    if is_chinese(w):
-                        errors.append(f"Chinese word in English mode: {w}")
+
+                    # Parse optional comment using "/"
+                    if "/" in w:
+                        raw_word, comment = [x.strip() for x in w.split("/", 1)]
+                    else:
+                        raw_word, comment = w, ""
+
+                    # Replace "_" with space
+                    word = raw_word.replace("_", " ")
+
+                    # Detect multi-word expressions
+                    is_multiword = (" " in word)
+
+                    # Skip duplicates
+                    if any(e["word"] == word for e in data["english"]):
                         continue
 
-                    if not is_single_english_word(w):
-                        errors.append(f"Not a single English word: {w}")
-                        continue
-
-                    info = fetch_freedict_data(w)
-
-                    if not info:
-                    # Fallback: add minimal entry
+                    # Multi-word expressions → skip FreeDict
+                    if is_multiword:
                         entry = {
-                            "word": w,
+                            "word": word,
                             "pron": "",
                             "meaning": "",
                             "audio": "",
-                            "comment": "", 
-                            "srs_interval": 1, 
+                            "comment": comment,
+                            "srs_interval": 1,
                             "srs_due": datetime.date.today().isoformat(),
-                            "srs_ease": 2.5, 
+                            "srs_ease": 2.5,
                             "srs_reps": 0
                         }
                         data["english"].append(entry)
                         added += 1
-                        errors.append(f"Added fallback entry for: {w}")
                         continue
 
-                    audio_path = download_audio(w, info["audio_url"])
+                    # Single-word English → normal FreeDict lookup
+                    info = fetch_freedict_data(word)
 
+                    if not info:
+                        entry = {
+                            "word": word,
+                            "pron": "",
+                            "meaning": "",
+                            "audio": "",
+                            "comment": comment,
+                            "srs_interval": 1,
+                            "srs_due": datetime.date.today().isoformat(),
+                            "srs_ease": 2.5,
+                            "srs_reps": 0
+                        }
+                        data["english"].append(entry)
+                        added += 1
+                        continue
+
+                    # FreeDict success
+                    audio_path = download_audio(word, info["audio_url"])
                     entry = {
-                        "word": w,
+                        "word": word,
                         "pron": info["ipa"],
                         "meaning": info["meaning"],
                         "audio": audio_path,
-                        "comment": "", 
-                        "srs_interval": 1, 
+                        "comment": comment,
+                        "srs_interval": 1,
                         "srs_due": datetime.date.today().isoformat(),
-                        "srs_ease": 2.5, 
+                        "srs_ease": 2.5,
                         "srs_reps": 0
                     }
                     data["english"].append(entry)
@@ -428,7 +599,8 @@ if page == "Add Words":
 
                 # ----------------- Chinese ----------------- #
                 else:
-                    # Try pinyin lookup
+                    if not is_chinese(w):
+                        # Try pinyin lookup
                         matches = lookup_chinese_by_pinyin(w)
                         if not matches:
                             errors.append(f"Not Chinese or valid pinyin: {w}")
@@ -439,6 +611,7 @@ if page == "Add Words":
                             w = chosen
                         else:
                             w = matches[0]
+
 
                     ced = cedict_dict.get(w, {})
                     entry = {
@@ -756,10 +929,13 @@ elif page == "Study Mode":
 
             if st.button("Start Study"):
                 import datetime
+                user_history = get_user_history(data, current_user)
+
                 today = datetime.date.today().isoformat()
-                if today not in data["study_history"]:
-                    data["study_history"].append(today)
+                if today not in user_history:
+                    user_history.append(today)
                     save_data(data)
+
 
                 # Build study list
                 if study_source == "All English Words":
@@ -891,7 +1067,6 @@ elif page == "Study Mode":
         st.write("No audio")
 
 
-
 # ----------------- PAGE: Study Groups ----------------- #
 elif page == "Study Groups":
     st.header("📂 Study Groups")
@@ -917,25 +1092,83 @@ elif page == "Study Groups":
     with st.expander("Select Group", expanded=True):
         selected_group = st.selectbox("Select a group", list(groups.keys()))
         group_list = groups[selected_group]
+        
 
     with st.expander("Add Words to Group", expanded=False):
-        language = st.radio("Select language", ["English", "Chinese"], key="group_lang")
+
+        st.markdown("### Batch Add Words")
+
+        batch_input = st.text_area(
+            "Enter words (one per line). Use '_' for spaces and '/' for comments.\n"
+            "Example: look_up / to search"
+        )
+
+        if st.button("Add Batch to Group"):
+            lines = [line.strip() for line in batch_input.splitlines() if line.strip()]
+            added = 0
+
+            for line in lines:
+                # Parse "word / comment"
+                if "/" in line:
+                    raw_word, comment = [x.strip() for x in line.split("/", 1)]
+                else:
+                    raw_word, comment = line, ""
+
+                # Replace "_" with space
+                word = raw_word.replace("_", " ")
+
+                # Detect language automatically
+                if any("\u4e00" <= ch <= "\u9fff" for ch in word):
+                    lang_key = "chinese"
+                else:
+                    lang_key = "english"
+
+                # Add to dictionary if missing
+                if not any(e["word"] == word for e in data[lang_key]):
+                    entry = {
+                        "word": word,
+                        "pron": "",
+                        "meaning": "",
+                        "audio": "",
+                        "comment": comment,
+                        "srs_interval": 1,
+                        "srs_due": datetime.date.today().isoformat(),
+                        "srs_ease": 2.5,
+                        "srs_reps": 0
+                    }
+                    data[lang_key].append(entry)
+
+                # Add to group
+                wid = f"{lang_key}:{word}"
+                if wid not in group_list:
+                    group_list.append(wid)
+                    added += 1
+
+            save_data(data)
+            st.success(f"Added {added} word(s) to the group.")
+
+        st.markdown("---")
+        st.markdown("### Add Single Word")
+
+        # Use a DIFFERENT key to avoid Streamlit widget collisions
+        language = st.radio("Select language", ["English", "Chinese"], key="group_lang_single")
         lang_key = "english" if language == "English" else "chinese"
 
         available_words = [e["word"] for e in data[lang_key]]
 
         if available_words:
             selected_word = st.selectbox("Choose a word to add", available_words)
-            if st.button("Add to Group"):
+            if st.button("Add to Group (Single)"):
                 wid = f"{lang_key}:{selected_word}"
                 if wid not in group_list:
                     group_list.append(wid)
                     save_data(data)
-                    st.success(f"Added '{selected_word}' to '{selected_group}'.")
+                    st.success(f"Added '{selected_word}' to group.")
                 else:
                     st.info(f"'{selected_word}' is already in this group.")
         else:
             st.info(f"No {language} words available.")
+
 
     with st.expander("Words in This Group", expanded=True):
         if not group_list:
@@ -947,13 +1180,21 @@ elif page == "Study Groups":
                 entry = next((e for e in data[lang] if e["word"] == word), None)
                 if entry:
                     display_rows.append({
-                        "Language": lang,
+                        "Language": lang,   # keep internally
                         "Word": entry["word"],
                         "Pron": entry.get("pron", ""),
                         "Meaning": entry.get("meaning", ""),
                         "Comment": entry.get("comment", "")
                     })
-            st.dataframe(display_rows, use_container_width=True)
+
+            # Hide Language column from UI
+            visible_rows = [
+                {k: row[k] for k in ["Word", "Pron", "Meaning", "Comment"]}
+                for row in display_rows
+            ]
+
+            st.dataframe(visible_rows, use_container_width=True)
+
 
     with st.expander("Remove Word From Group", expanded=False):
         if group_list:
@@ -1123,56 +1364,359 @@ elif page == "Statistics":
     st.metric("Current Streak", f"{current_streak} days")
     st.metric("Longest Streak", f"{longest_streak} days")
 
-# ----------------- SRS Mode ----------------- #
 
+# ----------------- PAGE: Review Mode (SRS) ----------------- #
 elif page == "Review Mode (SRS)":
     st.header("🧠 Review Mode (Spaced Repetition)")
+
+    ss = st.session_state
+
+    # ---------- Session State Initialization ----------
+    if "srs_list" not in ss:
+        ss.srs_list = []
+    if "srs_index" not in ss:
+        ss.srs_index = 0
+    if "srs_revealed" not in ss:
+        ss.srs_revealed = False
+    if "srs_prompt_type" not in ss:
+        ss.srs_prompt_type = "word"
+    if "srs_mixed_mode" not in ss:
+        ss.srs_mixed_mode = False
+    if "srs_reverse_mode" not in ss:
+        ss.srs_reverse_mode = False
 
     import datetime
     today = datetime.date.today().isoformat()
 
-    due_words = []
-    for lang in ["english", "chinese"]:
-        for e in data[lang]:
-            if e.get("srs_due", today) <= today:
-                due_words.append(e)
+    # ---------- Review Source ----------
+    review_source = st.radio(
+        "Review:",
+        ["All English Words", "All Chinese Words", "Study Group"],
+        key="srs_review_source"
+    )
 
-    if not due_words:
-        st.success("🎉 No words due for review today!")
+    selected_group = None
+    if review_source == "Study Group":
+        if not data["groups"]:
+            st.warning("No study groups available.")
+            st.stop()
+        selected_group = st.selectbox(
+            "Select a group",
+            list(data["groups"].keys()),
+            key="srs_group_selector"
+        )
+
+    # ---------- Review Settings ----------
+    st.markdown("### Review Settings")
+    ss.srs_mixed_mode = st.checkbox(
+        "Mixed prompt mode (word / meaning / comment)",
+        value=ss.srs_mixed_mode
+    )
+    ss.srs_reverse_mode = st.checkbox(
+        "Reverse mode (meaning → word)",
+        value=ss.srs_reverse_mode
+    )
+    shuffle = st.checkbox("Shuffle cards", value=False)
+    review_ahead = st.checkbox("📅 Review ahead (ignore due dates)", value=False)
+
+    # ---------- Prompt chooser for SRS ----------
+    def choose_srs_prompt_type(card):
+        lang, entry, srs_entry = card
+
+        if ss.srs_reverse_mode:
+            if entry.get("comment"):
+                return "comment"
+            elif entry.get("meaning"):
+                return "meaning"
+            else:
+                return "word"
+
+        if ss.srs_mixed_mode:
+            options = ["word"]
+            if entry.get("meaning"):
+                options.append("meaning")
+            if entry.get("comment"):
+                options.append("comment")
+            import random
+            return random.choice(options)
+
+        return "word"
+
+    # ---------- Collect Cards ----------
+    due_cards = []
+
+    def add_card(lang, entry):
+        word = entry["word"]
+        srs_entry = get_user_srs(data, current_user, lang).get(word, {})
+        due_date = srs_entry.get("srs_due", today)
+
+        if review_ahead or due_date <= today:
+            due_cards.append((lang, entry, srs_entry))
+
+    if review_source == "All English Words":
+        for entry in data["english"]:
+            add_card("english", entry)
+    elif review_source == "All Chinese Words":
+        for entry in data["chinese"]:
+            add_card("chinese", entry)
+    else:
+        group_list = data["groups"][selected_group]
+        for wid in group_list:
+            lang, word = wid.split(":", 1)
+            entry = next((e for e in data[lang] if e["word"] == word), None)
+            if entry:
+                add_card(lang, entry)
+
+    # ---------- Restart Button ----------
+    if st.button("🔄 Restart Review"):
+        ss.srs_list = []
+        ss.srs_index = 0
+        ss.srs_revealed = False
+        st.rerun()
+
+    # ---------- Initialize Session ----------
+    if not ss.srs_list:
+        if not due_cards:
+            st.success("🎉 No words due for review today!")
+
+            st.markdown("You can:")
+            st.markdown("- Change the review source above")
+            st.markdown("- Select a different study group")
+            st.markdown("- Enable 'Review ahead'")
+            st.markdown("- Or restart the session")
+
+            st.stop()
+
+        if shuffle:
+            import random
+            random.shuffle(due_cards)
+
+        ss.srs_list = due_cards
+        ss.srs_index = 0
+        ss.srs_revealed = False
+        ss.srs_prompt_type = choose_srs_prompt_type(ss.srs_list[0])
+
+    # ---------- Show Current Card ----------
+    lang, entry, srs_entry = ss.srs_list[ss.srs_index]
+
+    if ss.srs_prompt_type == "word":
+        st.markdown(f"## **{entry['word']}**")
+    elif ss.srs_prompt_type == "meaning":
+        st.markdown("### Meaning")
+        st.write(entry.get("meaning", ""))
+    elif ss.srs_prompt_type == "comment":
+        st.markdown("### Comment")
+        st.info(entry.get("comment", ""))
+
+    if ss.srs_revealed:
+        if ss.srs_prompt_type != "word":
+            st.markdown(f"### Word\n**{entry['word']}**")
+        st.markdown(f"**Pronunciation:** {entry.get('pron', '')}")
+        if ss.srs_prompt_type != "meaning":
+            st.markdown("### Meaning")
+            st.write(entry.get("meaning", ""))
+        if entry.get("comment") and ss.srs_prompt_type != "comment":
+            st.markdown("### Comment")
+            st.info(entry["comment"])
+
+    # ---------- Reveal and Rate ----------
+    if not ss.srs_revealed:
+        if st.button("Reveal"):
+            ss.srs_revealed = True
+            st.rerun()
+    else:
+        st.markdown("### How well did you remember?")
+        col1, col2, col3, col4 = st.columns(4)
+        if col1.button("🔁 Again"):
+            srs_update(srs_entry, 0)
+        elif col2.button("😐 Hard"):
+            srs_update(srs_entry, 1)
+        elif col3.button("🙂 Good"):
+            srs_update(srs_entry, 2)
+        elif col4.button("😄 Easy"):
+            srs_update(srs_entry, 3)
+        else:
+            st.stop()
+
+        save_data(data)
+        ss.srs_index += 1
+        ss.srs_revealed = False
+
+        if ss.srs_index >= len(ss.srs_list):
+            st.success("✅ Review complete!")
+            ss.srs_list = []
+            ss.srs_index = 0
+        else:
+            ss.srs_prompt_type = choose_srs_prompt_type(ss.srs_list[ss.srs_index])
+
+        st.rerun()
+        
+# ---------- DICTIONARY LOOKUP ----------#
+elif page == "Dictionary Lookup":
+    st.header("📖 Dictionary Lookup")
+
+    # User chooses lookup language
+    lookup_mode = st.radio(
+        "Lookup language:",
+        ["English", "Chinese"],
+        horizontal=True
+    )
+
+    lookup_word = st.text_input("Enter a word:").strip()
+
+    if not lookup_word:
         st.stop()
 
-    card = due_words[0]
+    # ---------- AUTO-DETECT IF WORD EXISTS ----------
+    if lookup_mode == "English":
+        exists = any(e["word"] == lookup_word.lower() for e in data["english"])
+    else:
+        exists = any(e["word"] == lookup_word for e in data["chinese"])
 
-    st.markdown(f"## **{card['word']}**")
+    if exists:
+        st.info("This word already exists in your database.")
 
-    if st.button("Reveal Meaning"):
-        st.write(card.get("meaning", ""))
-        st.write(f"Pronunciation: {card.get('pron', '')}")
+    # ============================================================
+    #                       ENGLISH LOOKUP
+    # ============================================================
+    if lookup_mode == "English":
+        word = lookup_word.lower()
 
-    st.markdown("### Rate your recall")
+        if not is_single_english_word(word):
+            st.error("Please enter a single English word.")
+            st.stop()
 
-    col1, col2, col3, col4 = st.columns(4)
+        info = fetch_freedict_data(word)
 
-    with col1:
-        if st.button("Again"):
-            srs_update(card, 0)
+        if not info:
+            st.warning("No dictionary entry found.")
+            st.stop()
+
+        st.markdown(f"## {word}")
+        st.markdown(f"**IPA:** {info['ipa']}")
+        st.markdown(f"**Meaning:** {info['meaning']}")
+
+        # ---------- SYNONYMS ----------
+        synonyms = []
+        if ";" in info["meaning"]:
+            parts = info["meaning"].split(";")
+            synonyms = [p.strip() for p in parts[1:4]]
+
+        if synonyms:
+            st.markdown("### Synonyms")
+            st.write(", ".join(synonyms))
+
+        # ---------- EXAMPLES ----------
+        st.markdown("### Example Sentences")
+        st.write(f"- I learned the word '{word}' today.")
+        st.write(f"- The meaning of '{word}' is: {info['meaning']}.")
+
+        # ---------- AUDIO ----------
+        audio_path = ""
+        if info["audio_url"]:
+            audio_path = download_audio(word, info["audio_url"])
+            if audio_path:
+                st.audio(audio_path)
+
+        # ---------- COMMENT ----------
+        comment = st.text_area("Add a comment (optional):")
+
+        # ---------- ADD TO ENGLISH LIST ----------
+        if st.button("➕ Add to English Words"):
+            entry = {
+                "word": word,
+                "pron": info["ipa"],
+                "meaning": info["meaning"],
+                "audio": audio_path,
+                "comment": comment,
+                "srs_interval": 1,
+                "srs_due": datetime.date.today().isoformat(),
+                "srs_ease": 2.5,
+                "srs_reps": 0
+            }
+            data["english"].append(entry)
             save_data(data)
-            st.rerun()
+            st.success(f"Added '{word}' to English words.")
 
-    with col2:
-        if st.button("Hard"):
-            srs_update(card, 1)
-            save_data(data)
-            st.rerun()
+        # ---------- ADD TO GROUP ----------
+        if data["groups"]:
+            group = st.selectbox("Add to group:", ["(none)"] + list(data["groups"].keys()))
+            if group != "(none)":
+                if st.button("➕ Add to selected group"):
+                    wid = f"english:{word}"
+                    if wid not in data["groups"][group]:
+                        data["groups"][group].append(wid)
+                        save_data(data)
+                        st.success(f"Added '{word}' to group '{group}'.")
+                    else:
+                        st.info("Already in this group.")
 
-    with col3:
-        if st.button("Good"):
-            srs_update(card, 2)
-            save_data(data)
-            st.rerun()
+    # ---------- CHINESE LOOKUP ----------
+    else:
 
-    with col4:
-        if st.button("Easy"):
-            srs_update(card, 3)
+        # Tone-sensitive toggle
+        tone_sensitive = st.checkbox("Tone‑sensitive search", value=False)
+
+        # Detect Chinese characters or pinyin
+        if is_chinese(lookup_word):
+            hanzi = lookup_word
+        else:
+            matches = lookup_chinese_by_pinyin(lookup_word, tone_sensitive)
+
+            if not matches:
+                st.error("No Chinese characters found for this pinyin.")
+                st.stop()
+
+            hanzi = st.selectbox(
+                "Multiple characters match this pinyin. Choose one:",
+                matches
+            )
+
+        # ---------- DISPLAY ----------
+        st.markdown(f"## {hanzi}")
+
+        ced = cedict_dict.get(hanzi, {})
+
+        pinyin_text = ced.get("pinyin", get_pinyin(hanzi))
+        meaning_text = ced.get("meaning", "")
+
+        st.markdown(f"**Pinyin:** {pinyin_text}")
+        st.markdown(f"**Meaning:** {meaning_text}")
+
+        # ---------- EXAMPLES ----------
+        st.markdown("### Example Sentences")
+        st.write("- 我今天学了这个词。")
+        st.write(f"- 这个词的意思是：{meaning_text}")
+
+        # ---------- COMMENT ----------
+        comment = st.text_area("Add a comment (optional):")
+
+        # ---------- ADD TO CHINESE LIST ----------
+        if st.button("➕ Add to Chinese Words"):
+            entry = {
+                "word": hanzi,
+                "pron": pinyin_text,
+                "meaning": meaning_text,
+                "audio": "",
+                "comment": comment,
+                "srs_interval": 1,
+                "srs_due": datetime.date.today().isoformat(),
+                "srs_ease": 2.5,
+                "srs_reps": 0
+            }
+            data["chinese"].append(entry)
             save_data(data)
-            st.rerun()
+            st.success(f"Added '{hanzi}' to Chinese words.")
+
+        # ---------- ADD TO GROUP ----------
+        if data["groups"]:
+            group = st.selectbox("Add to group:", ["(none)"] + list(data["groups"].keys()))
+            if group != "(none)":
+                if st.button("➕ Add to selected group"):
+                    wid = f"chinese:{hanzi}"
+                    if wid not in data["groups"][group]:
+                        data["groups"][group].append(wid)
+                        save_data(data)
+                        st.success(f"Added '{hanzi}' to group '{group}'.")
+                    else:
+                        st.info("Already in this group.")
