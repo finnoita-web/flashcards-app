@@ -998,63 +998,59 @@ elif page == "Study Mode":
     # ---------- Button Row ----------
     st.markdown("""
     <style>
-    .button-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-    }
-    .button-row .stButton > button {
-        flex: 1;
-        min-width: 100px;
+    /* Desktop buttons */
+    .stButton>button {
+        width: 100%;
         font-size: 1.1rem;
         padding: 0.6rem 1rem;
+        margin-bottom: 0.5rem;
     }
+
+    /* Mobile optimization */
     @media (max-width: 600px) {
-        .button-row {
-            flex-direction: row;
-            justify-content: space-between;
-        }
-        .button-row .stButton > button {
-            flex: 1;
-            font-size: 1.2rem;
-            padding: 0.9rem 1.2rem;
+        .stButton>button {
+            width: 100% !important;
+            font-size: 1.3rem !important;
+            padding: 1rem !important;
+            margin-bottom: 0.8rem !important;
         }
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="button-row">', unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
+    
+    # ---------- Responsive Button Grid ----------
+    with st.container():
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅️ Previous", key="prev_btn"):
+                if ss.study_index > 0:
+                    ss.study_index -= 1
+                    ss.revealed = False
+                    ss.study_prompt_type = choose_prompt_type(ss.study_list[ss.study_index])
+                    st.rerun()
 
-    with col1:
-        if st.button("⬅️ Previous"):
-            if ss.study_index > 0:
-                ss.study_index -= 1
-                ss.revealed = False
-                ss.study_prompt_type = choose_prompt_type(ss.study_list[ss.study_index])
+        with col2:
+            if st.button("➡️ Next", key="next_btn"):
+                if ss.study_index < len(ss.study_list) - 1:
+                    ss.study_index += 1
+                    ss.revealed = False
+                    ss.study_prompt_type = choose_prompt_type(ss.study_list[ss.study_index])
+                    st.rerun()
+
+        col3, col4 = st.columns(2)
+        with col3:
+            if st.button("Reveal", key="reveal_btn"):
+                ss.revealed = True
                 st.rerun()
 
-    with col2:
-        if st.button("Reveal"):
-            ss.revealed = True
-            st.rerun()
-
-    with col3:
-        if st.button("➡️ Next"):
-            if ss.study_index < len(ss.study_list) - 1:
-                ss.study_index += 1
+        with col4:
+            if st.button("❌ End", key="end_btn"):
+                ss.study_list = []
+                ss.study_index = 0
                 ss.revealed = False
-                ss.study_prompt_type = choose_prompt_type(ss.study_list[ss.study_index])
                 st.rerun()
 
-    with col4:
-        if st.button("❌ End"):
-            ss.study_list = []
-            ss.study_index = 0
-            ss.revealed = False
-            st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1640,14 +1636,19 @@ elif page == "Dictionary Lookup":
 
         # ---------- ADD TO GROUP ----------
         if data["groups"]:
-            group = st.selectbox("Add to group:", ["(none)"] + list(data["groups"].keys()))
-            if group != "(none)":
-                if st.button("➕ Add to selected group"):
-                    wid = f"english:{word}"
-                    if wid not in data["groups"][group]:
-                        data["groups"][group].append(wid)
+            group_choice = st.selectbox(
+                "Add this word to a study group:",
+                ["(none)"] + list(data["groups"].keys()),
+                key="lookup_group"
+            )
+
+            if group_choice != "(none)":
+                if st.button("➕ Add to selected group", key="lookup_add_group"):
+                    wid = f"english:{lookup_word}"
+                    if wid not in data["groups"][group_choice]:
+                        data["groups"][group_choice].append(wid)
                         save_data(data)
-                        st.success(f"Added '{word}' to group '{group}'.")
+                        st.success(f"Added '{lookup_word}' to group '{group_choice}'.")
                     else:
                         st.info("Already in this group.")
 
@@ -1710,13 +1711,19 @@ elif page == "Dictionary Lookup":
 
         # ---------- ADD TO GROUP ----------
         if data["groups"]:
-            group = st.selectbox("Add to group:", ["(none)"] + list(data["groups"].keys()))
-            if group != "(none)":
-                if st.button("➕ Add to selected group"):
+            group_choice = st.selectbox(
+                "Add this word to a study group:",
+                ["(none)"] + list(data["groups"].keys()),
+                key="lookup_group"
+            )
+
+            if group_choice != "(none)":
+                if st.button("➕ Add to selected group", key="lookup_add_group"):
                     wid = f"chinese:{hanzi}"
-                    if wid not in data["groups"][group]:
-                        data["groups"][group].append(wid)
+                    if wid not in data["groups"][group_choice]:
+                        data["groups"][group_choice].append(wid)
                         save_data(data)
-                        st.success(f"Added '{hanzi}' to group '{group}'.")
+                        st.success(f"Added '{hanzi}' to group '{group_choice}'.")
                     else:
                         st.info("Already in this group.")
+
