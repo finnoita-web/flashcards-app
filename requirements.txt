@@ -1,3 +1,11 @@
 streamlit
 requests
 pypinyin
+streamlit-drawable-canvas
+opencv-python-headless
+numpy
+supabase
+gotrue
+postgrest
+realtime
+storage3

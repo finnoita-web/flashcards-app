@@ -469,7 +469,16 @@
     }
   ],
   "groups": {},
-  "study_history": [
-    "2026-01-23"
-  ]
+  "users": {
+    "Default": {
+      "srs": {
+        "english": {},
+        "chinese": {}
+      },
+      "study_history": [
+        "2026-01-23",
+        "2026-02-10"
+      ]
+    }
+  }
 }
