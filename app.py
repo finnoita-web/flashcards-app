@@ -979,72 +979,6 @@ elif page == "Study Mode":
 
     ss = st.session_state
 
-    # ---------- CSS FOR HORIZONTAL BUTTONS ----------
-    st.markdown("""
-    <style>
-    .button-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }
-    .button-row > div {
-        flex: 1;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # ---------- SWIPE JS ----------
-    st.markdown("""
-    <script>
-    document.addEventListener('touchstart', handleTouchStart, false);        
-    document.addEventListener('touchmove', handleTouchMove, false);
-
-    var xDown = null;                                                        
-    var yDown = null;
-
-    function handleTouchStart(evt) {                                         
-        const firstTouch = evt.touches[0];                                      
-        xDown = firstTouch.clientX;                                      
-        yDown = firstTouch.clientY;                                      
-    };                                                
-
-    function handleTouchMove(evt) {
-        if (!xDown || !yDown) {
-            return;
-        }
-
-        var xUp = evt.touches[0].clientX;                                    
-        var yUp = evt.touches[0].clientY;
-
-        var xDiff = xDown - xUp;
-        var yDiff = yDown - yUp;
-
-        if (Math.abs(xDiff) > Math.abs(yDiff)) { 
-            if (xDiff > 0) {
-                // Swipe left → Next
-                window.parent.postMessage({type: "streamlit:setComponentValue", value: "swipe_next"}, "*");
-            } else {
-                // Swipe right → Previous
-                window.parent.postMessage({type: "streamlit:setComponentValue", value: "swipe_prev"}, "*");
-            }                       
-        }
-        xDown = null;
-        yDown = null;                                             
-    };
-    </script>
-    """, unsafe_allow_html=True)
-
-    # Hidden widget to receive swipe events (updated API)
-    params = st.query_params
-    swipe = params.get("swipe", [""])[0]
-
-    # Handle swipe events
-    if swipe == "swipe_next":
-        go_next()
-    if swipe == "swipe_prev":
-        go_prev()
-
     # ---------- Session State Initialization ----------
     if "study_list" not in ss:
         ss.study_list = []
@@ -1056,25 +990,6 @@ elif page == "Study Mode":
         ss.mixed_mode = False
     if "reverse_mode" not in ss:
         ss.reverse_mode = False
-
-    # ---------- Navigation Helpers ----------
-    def go_next():
-        if ss.study_index < len(ss.study_list) - 1:
-            ss.study_index += 1
-            ss.revealed = False
-            st.rerun()
-
-    def go_prev():
-        if ss.study_index > 0:
-            ss.study_index -= 1
-            ss.revealed = False
-            st.rerun()
-
-    # ---------- Handle Swipe Events ----------
-    if swipe == "swipe_next":
-        go_next()
-    if swipe == "swipe_prev":
-        go_prev()
 
     # ---------- Prompt chooser ----------
     def choose_prompt_type(card):
@@ -1181,33 +1096,41 @@ elif page == "Study Mode":
             if audio_path:
                 st.audio(audio_path)
 
+
         st.markdown("---")
 
-        # ---------- BUTTON ROW (HORIZONTAL) ----------
-        st.markdown('<div class="button-row">', unsafe_allow_html=True)
-        col1, col2, col3, col4 = st.columns(4)
+        # ---------- BUTTON ROW ----------
+        col_prev, col_reveal, col_next, col_end = st.columns(4)
 
-        with col1:
+        # PREVIOUS
+        with col_prev:
             if st.button("Previous"):
-                go_prev()
+                if ss.study_index > 0:
+                    ss.study_index -= 1
+                    ss.revealed = False
+                    st.rerun()
 
-        with col2:
+        # REVEAL
+        with col_reveal:
             if st.button("Reveal"):
                 ss.revealed = True
                 st.rerun()
 
-        with col3:
+        # NEXT
+        with col_next:
             if st.button("Next"):
-                go_next()
+                if ss.study_index < len(ss.study_list) - 1:
+                    ss.study_index += 1
+                    ss.revealed = False
+                    st.rerun()
 
-        with col4:
+        # END SESSION
+        with col_end:
             if st.button("End"):
                 ss.study_list = []
                 ss.study_index = 0
                 ss.revealed = False
                 st.rerun()
-
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ----------------- PAGE: Study Groups ----------------- #
