@@ -52,7 +52,7 @@ def create_word_with_lookup(word, comment=""):
 
         audio_path = ""
         if audio_url:
-            audio_path = download_audio(word, audio_url)
+            audio_url = download_audio_to_supabase(word, audio_url)
 
     # ----------------- CHINESE LOOKUP ----------------- #
     else:
@@ -342,22 +342,36 @@ def fetch_freedict_data(word: str):
         "audio_url": audio_url
     }
     
-def download_audio(word: str, audio_url: str):
+def upload_audio_to_supabase(word: str, audio_url: str):
+    """
+    Downloads audio from an external URL and uploads it to Supabase Storage.
+    Returns a public URL, or empty string on failure.
+    """
     if not audio_url:
         return ""
 
-    filename = AUDIO_DIR / f"{word.lower()}.mp3"
-
     try:
+        # Download audio from dictionary API
         r = requests.get(audio_url, timeout=10)
-        if r.status_code == 200:
-            with open(filename, "wb") as f:
-                f.write(r.content)
-            return str(filename)   # <-- RELATIVE PATH (REQUIRED FOR DEPLOYMENT)
-    except Exception:
-        return ""
+        if r.status_code != 200:
+            return ""
 
-    return ""
+        filename = f"{word.lower()}.mp3"
+
+        # Upload to Supabase Storage bucket "audio"
+        supabase.storage.from_("audio").upload(
+            path=filename,
+            file=r.content,
+            file_options={"content-type": "audio/mpeg", "upsert": True}
+        )
+
+        # Get public URL
+        public_url = supabase.storage.from_("audio").get_public_url(filename)
+        return public_url
+
+    except Exception as e:
+        print("Audio upload error:", e)
+        return ""
 
 
 
@@ -698,14 +712,15 @@ if page == "Add Words":
                         added += 1
                         continue
 
-                    # FreeDict success
-                    audio_path = download_audio(word, info["audio_url"])
+                    # FreeDict success → upload audio to Supabase Storage
+                    audio_url = upload_audio_to_supabase(word, info["audio_url"])
+
                     entry = {
                         "lang": "english",
                         "word": word,
                         "pron": info["ipa"],
                         "meaning": info["meaning"],
-                        "audio": audio_path,
+                        "audio": audio_url,   # <-- URL now, not local path
                         "comment": comment,
                         "srs_interval": 1,
                         "srs_due": datetime.date.today().isoformat(),
@@ -734,7 +749,7 @@ if page == "Add Words":
                         "word": w,
                         "pron": ced.get("pinyin", get_pinyin(w)),
                         "meaning": ced.get("meaning", ""),
-                        "audio": "",
+                        "audio": "",  # Chinese has no audio
                         "comment": "",
                         "srs_interval": 1,
                         "srs_due": datetime.date.today().isoformat(),
@@ -797,13 +812,15 @@ if page == "Add Words":
                             added += 1
                             continue
 
-                        audio_path = download_audio(word, info["audio_url"])
+                        # Upload audio to Supabase Storage
+                        audio_url = upload_audio_to_supabase(word, info["audio_url"])
+
                         entry = {
                             "lang": "english",
                             "word": word,
                             "pron": info["ipa"],
                             "meaning": info["meaning"],
-                            "audio": audio_path,
+                            "audio": audio_url,
                             "comment": "",
                             "srs_interval": 1,
                             "srs_due": datetime.date.today().isoformat(),
@@ -1091,10 +1108,15 @@ elif page == "Study Mode":
             st.markdown(f"**Meaning:** {card.get('meaning', '')}")
             st.markdown(f"**Comment:** {card.get('comment', '')}")
 
-            # 🔊 AUDIO SUPPORT
-            audio_path = card.get("audio", "")
-            if audio_path:
-                st.audio(audio_path)
+            # 🔊 AUDIO SUPPORT (Supabase Storage URL)
+            audio_url = card.get("audio", "")
+
+            # Only play if it's a valid URL
+            if audio_url and audio_url.startswith("http"):
+                try:
+                    st.audio(audio_url)
+                except Exception as e:
+                    st.warning("Audio could not be played.")
 
 
         st.markdown("---")
@@ -1277,7 +1299,7 @@ elif page == "Study Groups":
             new_meaning = st.text_area("Meaning", edit_choice.get("meaning", ""))
             new_comment = st.text_area("Comment", edit_choice.get("comment", ""))
 
-            # Optional: allow replacing audio
+            # Optional audio replacement
             new_audio = st.file_uploader("Replace audio (optional)", type=["mp3"])
 
             if st.button("Save Changes"):
@@ -1288,12 +1310,18 @@ elif page == "Study Groups":
                     "comment": new_comment,
                 }
 
-                # Handle audio replacement
+                # Upload new audio to Supabase Storage
                 if new_audio:
-                    audio_path = f"audio/{new_word.lower()}.mp3"
-                    with open(audio_path, "wb") as f:
-                        f.write(new_audio.read())
-                    update_data["audio"] = audio_path
+                    filename = f"{new_word.lower()}.mp3"
+
+                    supabase.storage.from_("audio").upload(
+                        path=filename,
+                        file=new_audio.read(),
+                        file_options={"content-type": "audio/mpeg", "upsert": True}
+                    )
+
+                    audio_url = supabase.storage.from_("audio").get_public_url(filename)
+                    update_data["audio"] = audio_url
 
                 # Update in Supabase
                 db_update_word(edit_choice["id"], update_data)
