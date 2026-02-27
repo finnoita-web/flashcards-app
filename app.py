@@ -218,6 +218,34 @@ def db_get_all_words():
         w["lang"] = "chinese"
 
     return english + chinese
+    
+def repair_missing_audio():
+    words = db_get_all_words()
+
+    repaired = 0
+    skipped = 0
+
+    for w in words:
+        audio = w.get("audio", "")
+
+        # Skip Chinese or already-fixed words
+        if w["lang"] != "english" or (audio and audio.startswith("http")):
+            skipped += 1
+            continue
+
+        info = fetch_freedict_data(w["word"])
+        if not info or not info.get("audio_url"):
+            skipped += 1
+            continue
+
+        audio_url = upload_audio_to_supabase(w["word"], info["audio_url"])
+
+        if audio_url:
+            db_update_word(w["id"], {"audio": audio_url})
+            repaired += 1
+
+    return repaired, skipped
+
 
 
 AUDIO_DIR = Path("audio")
@@ -1162,6 +1190,11 @@ elif page == "Study Groups":
     # Fetch groups and words
     groups = db_get_groups()  # returns list of {id, name}
     all_words = db_get_all_words()  # returns list of all words with id, lang, word, pron, meaning, comment
+    
+    with st.expander("🛠 Audio Repair Tools", expanded=False):
+        if st.button("Repair Missing Audio"):
+            repaired, skipped = repair_missing_audio()
+            st.success(f"Repaired {repaired} words. Skipped {skipped}.")
 
     # ----------------- CREATE NEW GROUP ----------------- #
     with st.expander("Create New Group", expanded=False):
@@ -1803,7 +1836,7 @@ elif page == "Dictionary Lookup":
         # ---------- AUDIO ----------
         audio_path = ""
         if info["audio_url"]:
-            audio_path = download_audio(word, info["audio_url"])
+            audio_url = upload_audio_to_supabase(word, info["audio_url"])
             if audio_path:
                 st.audio(audio_path)
 
